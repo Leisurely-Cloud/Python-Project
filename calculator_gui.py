@@ -1,13 +1,10 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 
-# Create the main window
-root = tk.Tk()
-root.title("Calculator")
-
-# Create the display area
-display_var = tk.StringVar()
-display = tk.Entry(root, textvariable=display_var, width=35, borderwidth=5, justify="right", state="readonly")
-display.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+# GUI elements are created in main() to avoid initializing Tk when imported for tests
+display_var = None
+root = None
+display = None
 
 # --- Button Click Functionality ---
 def button_click(item):
@@ -213,7 +210,7 @@ def _evaluate_expression_string(expression_string: str):
         return "Error: Calculation Failed"
 
 
-def calculate_result(): # This is the Tkinter callback
+def calculate_result():  # This is the Tkinter callback
     display.config(state="normal")
     expression = display_var.get()
     
@@ -231,38 +228,42 @@ def calculate_result(): # This is the Tkinter callback
     display.config(state="readonly")
 
 
-# Define button texts and their positions/commands
-buttons = [
-    ('7', 1, 0, button_click), ('8', 1, 1, button_click), ('9', 1, 2, button_click), ('/', 1, 3, button_click),
-    ('4', 2, 0, button_click), ('5', 2, 1, button_click), ('6', 2, 2, button_click), ('*', 2, 3, button_click),
-    ('1', 3, 0, button_click), ('2', 3, 1, button_click), ('3', 3, 2, button_click), ('-', 3, 3, button_click),
-    ('0', 4, 0, button_click), ('.', 4, 1, button_click), ('C', 4, 2, clear_display), ('+', 4, 3, button_click),
-    ('=', 5, 0, calculate_result, 4)  # Text, row, col, command, columnspan (optional)
-]
+def main():
+    global root, display, display_var
+    root = tk.Tk()
+    display_var = tk.StringVar()
+    root.title("Calculator")
 
-# Create and place buttons in the grid
-for button_info in buttons:
-    text = button_info[0]
-    row = button_info[1]
-    col = button_info[2]
-    command_func = button_info[3]
-    
-    # Determine if columnspan is specified
-    col_span = button_info[4] if len(button_info) == 5 else 1
-    
-    if text == 'C' or text == '=': # Specific commands for C and =
-        btn = tk.Button(root, text=text, padx=20, pady=20, command=command_func)
-    else: # For digits and operators, pass the text to button_click
-        btn = tk.Button(root, text=text, padx=20, pady=20, command=lambda t=text: command_func(t))
-        
-    btn.grid(row=row, column=col, columnspan=col_span, sticky="nsew")
+    style = ttk.Style(root)
+    style.configure("TButton", font=("Arial", 12), padding=10)
+    style.configure("TEntry", font=("Arial", 12))
 
-# Configure column and row weights for responsiveness
-for i in range(4):
-    root.grid_columnconfigure(i, weight=1)
-for i in range(1, 6): # Rows 1 to 5 (where buttons are)
-    root.grid_rowconfigure(i, weight=1)
+    display = ttk.Entry(root, textvariable=display_var, width=35, justify="right", state="readonly", style="TEntry")
+    display.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="nsew")
+
+    buttons = [
+        ('7', 1, 0, button_click), ('8', 1, 1, button_click), ('9', 1, 2, button_click), ('/', 1, 3, button_click),
+        ('4', 2, 0, button_click), ('5', 2, 1, button_click), ('6', 2, 2, button_click), ('*', 2, 3, button_click),
+        ('1', 3, 0, button_click), ('2', 3, 1, button_click), ('3', 3, 2, button_click), ('-', 3, 3, button_click),
+        ('0', 4, 0, button_click), ('.', 4, 1, button_click), ('C', 4, 2, clear_display), ('+', 4, 3, button_click),
+        ('=', 5, 0, calculate_result, 4)  # Text, row, col, command, columnspan (optional)
+    ]
+
+    for text, row, col, command_func, *rest in buttons:
+        col_span = rest[0] if rest else 1
+        if text in {'C', '='}:
+            btn = ttk.Button(root, text=text, command=command_func)
+        else:
+            btn = ttk.Button(root, text=text, command=lambda t=text: command_func(t))
+        btn.grid(row=row, column=col, columnspan=col_span, sticky="nsew", padx=2, pady=2)
+
+    for i in range(4):
+        root.grid_columnconfigure(i, weight=1)
+    for i in range(1, 6):
+        root.grid_rowconfigure(i, weight=1)
+
+    root.mainloop()
 
 
-# Start the Tkinter event loop
-root.mainloop()
+if __name__ == "__main__":
+    main()
