@@ -1,14 +1,5 @@
 import tkinter as tk
 
-# Create the main window
-root = tk.Tk()
-root.title("Calculator")
-
-# Create the display area
-display_var = tk.StringVar()
-display = tk.Entry(root, textvariable=display_var, width=35, borderwidth=5, justify="right", state="readonly")
-display.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
-
 # --- Button Click Functionality ---
 def button_click(item):
     current_text = display_var.get()
@@ -231,38 +222,55 @@ def calculate_result(): # This is the Tkinter callback
     display.config(state="readonly")
 
 
-# Define button texts and their positions/commands
-buttons = [
-    ('7', 1, 0, button_click), ('8', 1, 1, button_click), ('9', 1, 2, button_click), ('/', 1, 3, button_click),
-    ('4', 2, 0, button_click), ('5', 2, 1, button_click), ('6', 2, 2, button_click), ('*', 2, 3, button_click),
-    ('1', 3, 0, button_click), ('2', 3, 1, button_click), ('3', 3, 2, button_click), ('-', 3, 3, button_click),
-    ('0', 4, 0, button_click), ('.', 4, 1, button_click), ('C', 4, 2, clear_display), ('+', 4, 3, button_click),
-    ('=', 5, 0, calculate_result, 4)  # Text, row, col, command, columnspan (optional)
-]
+if __name__ == "__main__":
+    # Create the main window
+    root = tk.Tk()
+    root.title("Calculator")
 
-# Create and place buttons in the grid
-for button_info in buttons:
-    text = button_info[0]
-    row = button_info[1]
-    col = button_info[2]
-    command_func = button_info[3]
-    
-    # Determine if columnspan is specified
-    col_span = button_info[4] if len(button_info) == 5 else 1
-    
-    if text == 'C' or text == '=': # Specific commands for C and =
-        btn = tk.Button(root, text=text, padx=20, pady=20, command=command_func)
-    else: # For digits and operators, pass the text to button_click
-        btn = tk.Button(root, text=text, padx=20, pady=20, command=lambda t=text: command_func(t))
-        
-    btn.grid(row=row, column=col, columnspan=col_span, sticky="nsew")
+    # Create the display area
+    display_var = tk.StringVar()
+    display = tk.Entry(
+        root, textvariable=display_var, width=35, borderwidth=5,
+        justify="right", state="readonly")
+    display.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
-# Configure column and row weights for responsiveness
-for i in range(4):
-    root.grid_columnconfigure(i, weight=1)
-for i in range(1, 6): # Rows 1 to 5 (where buttons are)
-    root.grid_rowconfigure(i, weight=1)
+    # Define button texts and their positions/commands
+    buttons = [
+        ('7', 1, 0, button_click), ('8', 1, 1, button_click),
+        ('9', 1, 2, button_click), ('/', 1, 3, button_click),
+        ('4', 2, 0, button_click), ('5', 2, 1, button_click),
+        ('6', 2, 2, button_click), ('*', 2, 3, button_click),
+        ('1', 3, 0, button_click), ('2', 3, 1, button_click),
+        ('3', 3, 2, button_click), ('-', 3, 3, button_click),
+        ('0', 4, 0, button_click), ('.', 4, 1, button_click),
+        ('C', 4, 2, clear_display), ('+', 4, 3, button_click),
+        ('=', 5, 0, calculate_result, 4)  # Text, row, col, command, columnspan
+    ]
 
+    # Create and place buttons in the grid
+    for button_info in buttons:
+        text = button_info[0]
+        row = button_info[1]
+        col = button_info[2]
+        command_func = button_info[3]
 
-# Start the Tkinter event loop
-root.mainloop()
+        # Determine if columnspan is specified
+        col_span = button_info[4] if len(button_info) == 5 else 1
+
+        if text == 'C' or text == '=':  # Specific commands for C and =
+            btn = tk.Button(root, text=text, padx=20, pady=20,
+                             command=command_func)
+        else:  # For digits and operators, pass the text to button_click
+            btn = tk.Button(root, text=text, padx=20, pady=20,
+                             command=lambda t=text: command_func(t))
+
+        btn.grid(row=row, column=col, columnspan=col_span, sticky="nsew")
+
+    # Configure column and row weights for responsiveness
+    for i in range(4):
+        root.grid_columnconfigure(i, weight=1)
+    for i in range(1, 6):  # Rows 1 to 5 (where buttons are)
+        root.grid_rowconfigure(i, weight=1)
+
+    # Start the Tkinter event loop
+    root.mainloop()
