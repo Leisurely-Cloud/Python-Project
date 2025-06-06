@@ -80,6 +80,10 @@ class TestCalculatorLogic(unittest.TestCase):
         self.assertEqual(_evaluate_expression_string("5/"), "Error: Invalid division format")
         self.assertEqual(_evaluate_expression_string("abc"), "Error: Invalid character in expression: a")
         self.assertEqual(_evaluate_expression_string("3+a*2"), "Error: Invalid character in expression: a")
+
+        self.assertEqual(
+            _evaluate_expression_string("1..2"),
+            "Error: could not convert string to float: '1..2'")
         
         # Test expressions with trailing or leading decimal points that are valid numbers
         self.assertEqual(parse_expression("3+2."), [3.0, '+', 2.0]) # Parser test
