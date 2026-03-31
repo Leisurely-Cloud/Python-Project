@@ -24,8 +24,10 @@ class TestCalculatorLogic(unittest.TestCase):
             parse_expression("2++3")
         with self.assertRaisesRegex(ValueError, "Consecutive operators not forming a negative number"):
             parse_expression("2+*3") # This should be caught by "Consecutive operators"
-        with self.assertRaisesRegex(ValueError, "could not convert string to float: '-'"):
-            parse_expression("5*-") # current_num becomes "-", then float("-") is attempted at the end.
+        with self.assertRaisesRegex(ValueError, "Expression ends with a dangling sign"):
+            parse_expression("5*-")
+        with self.assertRaisesRegex(ValueError, "Expression ends with a dangling sign"):
+            parse_expression("+")
 
         with self.assertRaisesRegex(ValueError, "Invalid character in expression: a"):
             parse_expression("2+3a")
@@ -66,14 +68,14 @@ class TestCalculatorLogic(unittest.TestCase):
         self.assertEqual(_evaluate_expression_string("2.5"), 2.5)
         self.assertEqual(_evaluate_expression_string("-2.5+1"), -1.5)
         self.assertEqual(_evaluate_expression_string(""), "Error: Empty Expression")
+        self.assertEqual(_evaluate_expression_string(" 2 + 3 "), 5)
 
     def test_invalid_inputs_to_evaluate(self):
         # These errors are caught by parse_expression and propagated by _evaluate_expression_string
         self.assertEqual(_evaluate_expression_string("*2+3"), "Error: Expression starts with an operator without a preceding number")
         self.assertEqual(_evaluate_expression_string("2++3"), "Error: Consecutive operators not forming a negative number")
         self.assertEqual(_evaluate_expression_string("2+*3"), "Error: Consecutive operators not forming a negative number")
-        # For "5*-", parse_expression fails with float("-"). _evaluate_expression_string returns "Error: could not convert string to float: '-'"
-        self.assertEqual(_evaluate_expression_string("5*-"), "Error: could not convert string to float: '-'")
+        self.assertEqual(_evaluate_expression_string("5*-"), "Error: Expression ends with a dangling sign")
         self.assertEqual(_evaluate_expression_string("5*"), "Error: Invalid multiplication format") # Caught by _perform_core_calculation
         self.assertEqual(_evaluate_expression_string("5+"), "Error: Invalid addition format")   # Caught by _perform_core_calculation
         self.assertEqual(_evaluate_expression_string("/5"), "Error: Expression starts with an operator without a preceding number")

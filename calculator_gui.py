@@ -45,6 +45,7 @@ def parse_expression(expression_string: str) -> list:
     Handles leading signs and negative numbers after operators.
     Raises ValueError for malformed expressions.
     """
+    expression_string = expression_string.replace(" ", "")
     if not expression_string:
         return []
     
@@ -77,6 +78,9 @@ def parse_expression(expression_string: str) -> list:
             components.append(char) # Add the operator
         else:
             raise ValueError(f"Invalid character in expression: {char}")
+
+    if current_num in ['+', '-']:
+        raise ValueError("Expression ends with a dangling sign")
 
     if current_num: # Append the last number
         components.append(float(current_num))
@@ -225,7 +229,7 @@ def calculate_result(): # This is the Tkinter callback
 if __name__ == "__main__":
     # Create the main window
     root = tk.Tk()
-    root.title("Calculator")
+    root.title("计算器")
 
     # Create the display area
     display_var = tk.StringVar()
