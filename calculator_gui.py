@@ -125,51 +125,54 @@ def _perform_core_calculation(components: list):
 
 
     # Pass 1: Multiplication and Division
+    new_components = []
     i = 0
     while i < len(components):
-        op = components[i]
-        if op == '*':
-            if i == 0 or i == len(components) - 1 or not isinstance(components[i-1], float) or not isinstance(components[i+1], float):
-                raise ValueError("Invalid multiplication format")
-            result = components[i-1] * components[i+1]
-            components = components[:i-1] + [result] + components[i+2:]
-            i = 0  # Restart scan
-            continue
-        elif op == '/':
-            if i == 0 or i == len(components) - 1 or not isinstance(components[i-1], float) or not isinstance(components[i+1], float):
-                raise ValueError("Invalid division format")
-            if components[i+1] == 0:
-                raise ZeroDivisionError("Division by zero")
-            result = components[i-1] / components[i+1]
-            components = components[:i-1] + [result] + components[i+2:]
-            i = 0  # Restart scan
-            continue
-        i += 1
+        item = components[i]
+        if item in ('*', '/'):
+            op = item
+            if not new_components or not isinstance(new_components[-1], float) or i == len(components) - 1 or not isinstance(components[i+1], float):
+                if op == '*':
+                    raise ValueError("Invalid multiplication format")
+                else:
+                    raise ValueError("Invalid division format")
+            left = new_components.pop()
+            right = components[i+1]
+            if op == '*':
+                new_components.append(left * right)
+            elif op == '/':
+                if right == 0:
+                    raise ZeroDivisionError("Division by zero")
+                new_components.append(left / right)
+            i += 2  # Skip the operator and the right operand
+        else:
+            new_components.append(item)
+            i += 1
+    components = new_components
 
     # Pass 2: Addition and Subtraction
+    new_components = []
     i = 0
     while i < len(components):
-        op = components[i]
-        if op == '+':
-            if i == 0 or i == len(components) - 1 or not isinstance(components[i-1], float) or not isinstance(components[i+1], float):
-                raise ValueError("Invalid addition format")
-            result = components[i-1] + components[i+1]
-            components = components[:i-1] + [result] + components[i+2:]
-            i = 0  # Restart scan
-            continue
-        elif op == '-': # Note: parse_expression should handle leading negatives to form numbers like -5.0
-            if i == 0 or i == len(components) - 1 or not isinstance(components[i-1], float) or not isinstance(components[i+1], float):
-                 # This can happen if it's the start of the list e.g. [-5.0, '+', 2.0] and we are at '-'
-                 # The current loop structure assumes operator is at components[i]
-                 # A list like [-5.0, '+', 2.0] should be handled by '+' correctly
-                 # A list like [5.0, '-', 2.0] is the standard case.
-                 # If components was like ['-', 5.0, '+', 2.0] (which parse_expression avoids), this would be an issue.
-                raise ValueError("Invalid subtraction format")
-            result = components[i-1] - components[i+1]
-            components = components[:i-1] + [result] + components[i+2:]
-            i = 0  # Restart scan
-            continue
-        i += 1
+        item = components[i]
+        if item in ('+', '-'):
+            op = item
+            if not new_components or not isinstance(new_components[-1], float) or i == len(components) - 1 or not isinstance(components[i+1], float):
+                if op == '+':
+                    raise ValueError("Invalid addition format")
+                else:
+                    raise ValueError("Invalid subtraction format")
+            left = new_components.pop()
+            right = components[i+1]
+            if op == '+':
+                new_components.append(left + right)
+            elif op == '-':
+                new_components.append(left - right)
+            i += 2  # Skip the operator and the right operand
+        else:
+            new_components.append(item)
+            i += 1
+    components = new_components
     
     if len(components) == 1 and isinstance(components[0], float):
         return components[0]
