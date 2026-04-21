@@ -1,18 +1,19 @@
 import tkinter as tk
 
+# --- Constants ---
+OPERATORS = ('+', '-', '*', '/')
+
 # --- Button Click Functionality ---
 def button_click(item):
     current_text = display_var.get()
     display.config(state="normal")
 
-    operators = ['+', '-', '*', '/']
-
-    if item in "0123456789":
+    if item.isdigit():
         display_var.set(current_text + item)
     elif item == ".":
         # Find the start of the current number
         last_op_index = -1
-        for op in operators:
+        for op in OPERATORS:
             try:
                 last_op_index = max(last_op_index, current_text.rindex(op))
             except ValueError:
@@ -21,9 +22,9 @@ def button_click(item):
         current_number = current_text[last_op_index+1:]
         if "." not in current_number:
             display_var.set(current_text + item)
-    elif item in operators:
+    elif item in OPERATORS:
         if current_text: # If display is not empty
-            if current_text[-1] in operators: # Last char is an operator
+            if current_text[-1] in OPERATORS: # Last char is an operator
                 display_var.set(current_text[:-1] + item) # Replace last operator
             else:
                 display_var.set(current_text + item) # Append operator
@@ -50,40 +51,44 @@ def parse_expression(expression_string: str) -> list:
         return []
     
     components = []
-    current_num = ""
+    current_num_parts = []
     
     for i, char in enumerate(expression_string):
         if char.isdigit() or char == '.':
-            current_num += char
-        elif char in ['+', '-', '*', '/']:
-            if current_num: # Current number is complete, add it
-                components.append(float(current_num))
-                current_num = ""
-            # Handling for operators:
+            current_num_parts.append(char)
+        elif char in OPERATORS:
+            if current_num_parts: # Current number is complete, add it
+                components.append(float("".join(current_num_parts)))
+                current_num_parts = []
+                components.append(char) # Add the operator
+            # Handling for operators without a preceding number:
             # 1. Leading sign for the very first number (e.g., "-5", "+3")
             elif not components and (char == '-' or char == '+'):
-                current_num += char # Start accumulating the signed number
-                continue
+                current_num_parts.append(char) # Start accumulating the signed number
             # 2. Operator at the beginning without a preceding number (e.g. *5 or /5) - error
             elif not components: 
                 raise ValueError("Expression starts with an operator without a preceding number")
             # 3. Operator after another operator (e.g., "5*+2" or "5--2")
             elif components and isinstance(components[-1], str):
-                if char == '-' and components[-1] in ['*', '/','+','-']: # Allow "5*-2" or "5+-2" or "5--2"
-                    current_num += char # This '-' is part of the next number
-                    continue
+                if char == '-' and components[-1] in OPERATORS: # Allow "5*-2" or "5+-2" or "5--2"
+                    current_num_parts.append(char) # This '-' is part of the next number
                 else: # "5*+2" or "5++2"
                     raise ValueError("Consecutive operators not forming a negative number")
-            
-            components.append(char) # Add the operator
+            # 4. Standard operator after a number (already handled by 'if current_num_parts')
+            # but if we get here, it means we have an operator but no current_num_parts
+            # AND components is not empty AND components[-1] is NOT a string.
+            # This would be the case for "5+2" if it wasn't caught by the first 'if'
+            else:
+                components.append(char)
         else:
             raise ValueError(f"Invalid character in expression: {char}")
 
-    if current_num in ['+', '-']:
+    final_num_str = "".join(current_num_parts)
+    if final_num_str in ('+', '-'):
         raise ValueError("Expression ends with a dangling sign")
 
-    if current_num: # Append the last number
-        components.append(float(current_num))
+    if current_num_parts: # Append the last number
+        components.append(float(final_num_str))
         
     # Post-parsing to merge operator and negative sign if applicable. E.g. [5.0, '*', '-', 2.0] -> [5.0, '*', -2.0]
     # This was part of the original logic, slightly adjusted for the new parsing flow.
